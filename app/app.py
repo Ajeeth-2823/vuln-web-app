@@ -312,18 +312,27 @@ def page():
         in: query
         type: string
         required: true
-        description: The command to execute.
+        description: Command key to execute (allowlisted).
     responses:
       200:
         description: The output of the command.
+      400:
+        description: Invalid command key.
     """
 
+    cmd = request.args.get("cmd", "")
 
-    cmd = request.args.get("cmd")
+    allowed_commands = {
+        "whoami": ["whoami"],
+        "id": ["id"],
+        "uname": ["uname", "-a"]
+    }
 
-    return subprocess.check_output(cmd, shell=True)
-    # command_to_be_executed = ['cat', '/']
-    # return subprocess.check_output(command_to_be_executed, shell=True)
+    command_to_run = allowed_commands.get(cmd)
+    if not command_to_run:
+        return "Invalid command", 400
+
+    return subprocess.check_output(command_to_run, shell=False, text=True)
 
 @sitemapper.include(lastmod="2023-18-05")
 @app.route('/pythonlogin/upload')
